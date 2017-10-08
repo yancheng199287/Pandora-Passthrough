@@ -1,5 +1,9 @@
 package net.ftzcode.client.util
 
+import java.io.BufferedInputStream
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.util.*
 
 /**
@@ -11,6 +15,8 @@ import java.util.*
 
 object AppConf {
 
+    private val separator = System.getProperty("file.separator")
+
     private val map = HashMap<String, String>(5)
 
     val remoteHost = getStringValue()["remoteHost"]
@@ -20,19 +26,50 @@ object AppConf {
     val accessKey = getStringValue()["accessKey"]!!
 
 
-
     private fun getStringValue(): HashMap<String, String> {
         if (map.size <= 0) {
-            val resourceBundle = ResourceBundle.getBundle("appConf")
-            resourceBundle.keySet().forEach {
-                run {
-                    val value = resourceBundle.getString(it)
-                    map.put(it, value)
-                    println("current config params：key:$it , value:$value")
-                }
+            try {
+                ResourceBundle.getBundle("client")
+                println("Loading conf file from program path...")
+                getClassPathConf()
+            } catch (e: MissingResourceException) {
+                println("Loading conf file from program path...")
+                getCurrentConf()
             }
         }
         return map
     }
 
+
+    private fun getClassPathConf(): HashMap<String, String> {
+        val resourceBundle = ResourceBundle.getBundle("client")
+        resourceBundle.keySet().forEach {
+            run {
+                val value = resourceBundle.getString(it)
+                map.put(it, value)
+                println("current config params：key:$it , value:$value")
+            }
+        }
+        return map
+    }
+
+
+    private fun getCurrentConf() {
+        val path = System.getProperty("user.dir") + separator + "client.properties"
+        var resourceBundle: ResourceBundle? = null
+        try {
+            BufferedInputStream(FileInputStream(path)).use { inputStream -> resourceBundle = PropertyResourceBundle(inputStream) }
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+        val iterator = resourceBundle!!.keySet().iterator()
+        while (iterator.hasNext()) {
+            val it = iterator.next()
+            val value = resourceBundle!!.getString(it)
+            map.put(it, value)
+            println("current config params：key:$it , value:$value")
+        }
+    }
 }

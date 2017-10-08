@@ -1,6 +1,7 @@
 package net.ftzcode.protocol
 
 import java.io.Serializable
+import java.nio.charset.Charset
 import java.util.*
 
 /**
@@ -16,11 +17,11 @@ data class Pandora(
         var channelId: String? = null,
         var content: String? = null,
         var data: ByteArray? = null
-): Serializable {
+) : Serializable {
 
     companion object {
 
-        //从ycServer发送消息到yc客户端
+        //请求登录
         val YC_CLIENT_REQUEST_LOGIN: Byte = 0x10
 
         //响应登录失败
@@ -35,6 +36,10 @@ data class Pandora(
 
         //从yc客户端 发送消息到ycServer
         val SEND_YC_SERVER_FROM_YC_CLIENT: Byte = 0x21
+
+
+        //客户端本地服务无响应，服务端开始断开
+        val SEND_YC_SERVER_NO_RESPONSE_FROM_YC_CLIENT: Byte = 0x22
 
 
     }
@@ -77,9 +82,9 @@ object Constant {
     val CHANNEL_ID_LENGTH = 60
     val HEADER_LENGTH = LENGTH_FILED + CONTENT_LENGTH + MSG_TYPE_LENGTH + CHANNEL_ID_LENGTH
 
+    val CHARSET = Charset.forName("UTF-8")
 
 }
-
 
 
 object LengthFiledDecoder {

@@ -24,19 +24,32 @@ class YCServerHandler : SimpleChannelInboundHandler<Pandora>() {
     }
 
     override fun channelActive(ctx: ChannelHandlerContext?) {
-       // logger.info("来自连接YCServer的通道激活   ${ctx!!.channel()}  ,通道id：${ctx!!.channel().id().asLongText()}")
+        logger.debug("来自连接YCServer的通道激活   ${ctx!!.channel()}  ,通道id：${ctx!!.channel().id().asLongText()}")
     }
 
     override fun channelRead0(ctx: ChannelHandlerContext?, pandora: Pandora?) {
 
+        logger.debug("YCServer 接收到消息， 当前 通道信息:${ctx!!.channel()}  获取的消息内容: $pandora")
         when (pandora!!.msgType) {
 
             Pandora.SEND_YC_CLIENT_FROM_YC_SERVER -> {
-                sendMsgToYClient(ctx!!, pandora)
+                sendMsgToYClient(ctx, pandora)
+
+                logger.debug("YCServer接收到消息... 是服务端请求发送的")
+
             }
 
             Pandora.SEND_YC_SERVER_FROM_YC_CLIENT -> {
+                logger.debug("YCServer接收到消息... 是客户端请求响应发送的")
+
                 sendMsgToProxyClient(pandora)
+            }
+
+
+            Pandora.SEND_YC_SERVER_NO_RESPONSE_FROM_YC_CLIENT -> {
+                logger.info("请求客户端失败，返回的原因:${pandora.content}")
+                yClientChannel!!.close()
+                yClientChannel = null
             }
 
             Pandora.YC_CLIENT_REQUEST_LOGIN -> {
@@ -44,14 +57,14 @@ class YCServerHandler : SimpleChannelInboundHandler<Pandora>() {
                     logger.info("恭喜，认证成功！")
                     pandora.content = "恭喜你，认证成功!"
                     pandora.msgType = Pandora.YC_CLIENT_RESPONSE_LOGIN_SUCCESS
-                    yClientChannel = ctx!!.channel()
-                    ctx.writeAndFlush(pandora)
+                    yClientChannel = ctx.channel()
+                    yClientChannel!!.writeAndFlush(pandora)
                 } else {
                     logger.info("认证失败 ！")
                     pandora.content = "很抱歉，认证失败!"
                     pandora.msgType = Pandora.YC_CLIENT_RESPONSE_LOGIN_FAILED
                     yClientChannel = null
-                    ctx!!.writeAndFlush(pandora).addListener(ChannelFutureListener.CLOSE)
+                    ctx.writeAndFlush(pandora).addListener(ChannelFutureListener.CLOSE)
                 }
 
             }
@@ -68,9 +81,6 @@ class YCServerHandler : SimpleChannelInboundHandler<Pandora>() {
     private fun sendMsgToProxyClient(pandora: Pandora) {
         val proxyClientChannel = channelMap[pandora.channelId]
         proxyClientChannel!!.writeAndFlush(pandora)
-
-        // logger.info("开始 发送消息到http服务... $pandora")
-
     }
 
 
@@ -80,13 +90,14 @@ class YCServerHandler : SimpleChannelInboundHandler<Pandora>() {
         channelMap.put(channelId, channel)
         pandora.channelId = channelId
         yClientChannel!!.writeAndFlush(pandora)
-
-        //  logger.info("开始 发送消息到 客户端... $pandora")
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext?) {
-        // val channel = ctx!!.channel()
-        //channelMap.remove(channel.id().asLongText())
+        val channel = ctx!!.channel()
+        channelMap.remove(channel.id().asLongText())
+
+        logger.debug("连接YCServer的客户端通道销毁，当前已经被移除缓存：$channel")
+
     }
 
 

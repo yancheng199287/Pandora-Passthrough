@@ -37,7 +37,6 @@ class YClientHandler : SimpleChannelInboundHandler<Pandora>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext?, pandora: Pandora?) {
 
-
         when (pandora!!.msgType) {
             Pandora.SEND_YC_CLIENT_FROM_YC_SERVER -> {
                 startProxyClient(ctx!!.channel(), pandora)
@@ -71,14 +70,21 @@ class YClientHandler : SimpleChannelInboundHandler<Pandora>() {
                     }
                 })
         val f = b.connect(AppConf.localHost, AppConf.localServerPort)
+
         f.addListener({ future ->
             if (future.isSuccess) {
                 val channel = f.channel()
                 channel.writeAndFlush(Unpooled.copiedBuffer(pandora.data))
 
               // 浏览器多次刷新 一个请求 会 分两次包发送  导致 多个客户端端口 请求 ，  必须保证在同 一个端口才能完整请求 响应
-                //解决办法，在源头聚合完整的请求系哦西
+                //解决办法，在源头聚合完整的请求消息
                // println("写入  $channel  服务器服务器信息：$pandora  \n  ${String(pandora.data!!)}")
+            }else{
+                logger.warn("Pandora-Client 请求本地服务无响应，请检查对应端口 ${AppConf.localServerPort} 的服务是否成功开启，服务端即将断开本次连接！")
+                pandora.msgType = Pandora.SEND_YC_SERVER_NO_RESPONSE_FROM_YC_CLIENT
+                pandora.data =Unpooled.EMPTY_BUFFER.array()
+                pandora.content = "客户端请求本地服务无响应，申请断开连接！"
+                serverChannel.writeAndFlush(pandora)
             }
         })
     }

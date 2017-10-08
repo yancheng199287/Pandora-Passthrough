@@ -13,12 +13,12 @@
     <properties>
         <kotlin.version>1.1.4-3</kotlin.version>
     </properties>
-
     <modules>
         <module>Pandora-Protocol</module>
         <module>Pandora-Client</module>
         <module>Pandora-Server</module>
     </modules>
+
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->

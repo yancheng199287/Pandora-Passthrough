@@ -32,9 +32,7 @@ class YClient{
         try {
             b.group(group)
                     .channel(NioSocketChannel::class.java)
-                    .option(ChannelOption.SO_BACKLOG, 1024)
                     .option(ChannelOption.TCP_NODELAY, true)
-                    .option(ChannelOption.SO_TIMEOUT, 10000)
                     .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .remoteAddress(AppConf.remoteHost, AppConf.remotePort)

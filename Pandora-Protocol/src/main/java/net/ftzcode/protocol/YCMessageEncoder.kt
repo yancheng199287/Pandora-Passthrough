@@ -16,29 +16,36 @@ import java.nio.charset.Charset
 
 class YCMessageEncoder : MessageToByteEncoder<Pandora>() {
 
-    // private val logger = LoggerFactory.getLogger("YCMessageEncoder")
-
+    private val logger = LoggerFactory.getLogger("YCMessageEncoder")
 
     override fun encode(ctx: ChannelHandlerContext?, pandora: Pandora?, out: ByteBuf?) {
+        logger.debug("开始编码...  当前 通道：${ctx!!.channel()}, 要编码的对象pandora：$pandora")
+
         var frameLength: Int = Constant.HEADER_LENGTH
         frameLength += pandora!!.data!!.size
         if (pandora.content == null) {
             out!!.writeInt(frameLength)
             out.writeInt(0)
         } else {
-            //注意，字符串应该这样获取length，当然如果英文数字可以直接获取长度
-            val contentLength = pandora.content!!.toByteArray().size
+            //注意，字符串应该按照指定编码获取字节数组的长度length，当然如果英文数字可以直接获取字符长度，推荐前者
+            val contentLength = pandora.content!!.toByteArray(Constant.CHARSET).size
             frameLength += contentLength
             out!!.writeInt(frameLength)
             out.writeInt(contentLength)
-            out.writeCharSequence(pandora.content, Charset.defaultCharset())
+            out.writeCharSequence(pandora.content, Constant.CHARSET)
         }
+
+        logger.debug("编码中，设置标头的总长度是 $frameLength，承载的协议数据dataSize：${pandora.data!!.size}..")
+
         out.writeByte(pandora.msgType!!.toInt())
 
-        out.writeCharSequence(pandora.channelId, Charset.defaultCharset())
+        val size = out.writeCharSequence(pandora.channelId, Constant.CHARSET)
+
+        logger.debug("编码中， 计算 通道ID  size的大小:$size")
 
         out.writeBytes(pandora.data)
 
+        logger.debug("编码成功... 要传输的容量信息：$out")
     }
 
 }

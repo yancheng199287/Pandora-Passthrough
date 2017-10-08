@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory
 
 class ProxyClientHandler(private var serverChannel: Channel, private var channelId: String) : SimpleChannelInboundHandler<ByteBuf>() {
 
+    private val logger = LoggerFactory.getLogger("ProxyClientHandler")
+
     override fun channelRead0(ctx: ChannelHandlerContext?, msg: ByteBuf?) {
         val pandora = Pandora()
         pandora.msgType = Pandora.SEND_YC_SERVER_FROM_YC_CLIENT
@@ -27,16 +29,12 @@ class ProxyClientHandler(private var serverChannel: Channel, private var channel
         pandora.content = "成功获取到本地服务端的消息"
         serverChannel.writeAndFlush(pandora)
 
-       // println("获取到本地服务器信息：$pandora  \n  ${String(pandora.data!!)}")
-
-
-      //  println("获取到本地服务器信息：$pandora  \n  ${pandora.data!!.size}")
-
+        logger.debug("获取到本地服务器响应的信息，发送给YCServer服务端：$pandora   ${String(pandora.data!!)}")
     }
 
 
     override fun channelInactive(ctx: ChannelHandlerContext?) {
-        //println("ProxyClientHandler ：连接本地服务通道销毁了 ， ${ctx!!.channel()}")
 
+        logger.debug("连接本地服务通道销毁了，通道信息：${ctx!!.channel()}")
     }
 }

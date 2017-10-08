@@ -89,6 +89,8 @@ class YCServer(private val httpPort: Int, private val serverPort: Int) {
                         }
                     })
             val f: ChannelFuture = serverBootstrap.bind(serverPort).sync()
+            val address = f.channel().localAddress()
+            logger.info("YC Server has been started，address:$address ,  please enjoy it！")
             f.channel().closeFuture().sync()
         } finally {
             bossGroup.shutdownGracefully()

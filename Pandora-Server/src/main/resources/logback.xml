@@ -14,7 +14,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--日志文件输出的文件名-->
-            <FileNamePattern>${LOG_HOME}/ZeusProxy.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <FileNamePattern>./Pandora-Passthrough-Server.log.%d{yyyy-MM-dd}.log</FileNamePattern>
             <!--日志文件保留天数-->
             <MaxHistory>60</MaxHistory>
         </rollingPolicy>
@@ -30,10 +30,16 @@
 
 
 
-    <!-- 日志输出级别 -->
-    <root level="INFO">
-         <appender-ref ref="STDOUT"/>
-        <!-- <appender-ref ref="FILE"/>-->
+    <!-- 日志输出级别  打包版本-->
+    <!--   <root level="INFO">
+            <appender-ref ref="FILE"/>
+           &lt;!&ndash; <appender-ref ref="FILE"/>&ndash;&gt;
+       </root>-->
+
+    <!--调试开发 支持文件、控制台同时记录-->
+    <root level="DEBUG">
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="STDOUT"/>
     </root>
 
 </configuration>
